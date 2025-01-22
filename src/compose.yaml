@@ -1,0 +1,45 @@
+services:
+  api: 
+    tty: true
+    build: ./backend/Services/
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./backend:/app/backend
+    working_dir: /app/backend/
+    command: flask --app Services/main --debug run -h 0.0.0.0
+  
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend:/app/backend
+      - ~/.config/gcloud:/root/.config/gcloud
+    working_dir: /app/backend
+    depends_on:
+      - database
+    restart: on-failure
+    command: python3 engine.py
+  
+  database:
+    image: mysql:8.3
+    ports:
+      - "3306:3306"
+    command: --init-file /home/init.sql
+    environment: 
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_USER: Dev 
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./backend/db/init.sql:/home/init.sql
+
+
+#  frontend:
+#    build: ./frontend
+#    ports:
+#      - "3000:3000"
+#    volumes:
+#      - type: bind
+#        source: ./frontend
+#        target: /app
+#    working_dir: /app
+#    command: bash -c "npm install && npm run dev"
